@@ -1,15 +1,11 @@
-Assignment 0:
+################################################################################
 
-  Each one of the datasets has properties which makes them hard to learn.
-  Motivate which of the three problems is most difficult for a decision tree algorithm
-  to learn.
-
-
+Background
   There are three MONK's problems.  The domains for all MONK's problems
   are the same (described below).  One of the MONK's problems has noise
   added. For each problem, the domain has been partitioned into a train
   and test set.
-  
+
   5. Number of Instances: 432
 
   6. Number of Attributes: 8 (including class attribute)
@@ -22,7 +18,7 @@ Assignment 0:
       5. a4:    1, 2, 3
       6. a5:    1, 2, 3, 4
       7. a6:    1, 2
-      8. Id:    (A unique symbol for each instance)
+      8. ID:    (A unique symbol for each instance)
 
   8. Missing Attribute Values: None
 
@@ -34,3 +30,21 @@ Assignment 0:
 
      MONK-3: (a5 = 3 and a4 = 1) or (a5 /= 4 and a2 /= 3)
              (5% class noise added to the training set)
+
+################################################################################
+
+ Assignment 0:
+
+   Each one of the datasets has properties which makes them hard to learn.
+   Motivate which of the three problems is most difficult for a decision tree
+   algorithm to learn.
+
+   I believe MONK-2 to be the most difficult for a decision tree algorithm to
+   learn, since "ai = 1 for exactly two i of {1, 2, ..., 6} is difficult to
+   express concisely with binary questions. Low information gain from each
+   sub question. On the other hand, it has more training data...
+
+   MONK-3 has the least amount of training data. Apart from that, it also has
+   random noise added.
+
+################################################################################
