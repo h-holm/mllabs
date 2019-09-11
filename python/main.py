@@ -126,7 +126,7 @@ print()
 ################################################################################
 
 
-################################# Assignment 4 #################################
+################################# Assignment 5 #################################
 # Split the monk1 data into subsets according to the selected attribute using
 # the function select (again, defined in dtree.py) and compute the information
 # gains for the nodes on the next level of the tree. Which attributes should be
@@ -148,19 +148,14 @@ for i in range(len(m.attributes)):
     else:
         monk1_A12346.extend(select(m.monk1, m.attributes[i], True))
 
+print("\nAssignment 5 - Split monk1 into subsets according to selected attribute {}\n".format("A5"))
 # print(len(monk1_A5))
 # print(len(monk1_A12346))
 
-avg_gain_dict = dict()
-for i, ds in enumerate(datasets_train):
-    pass
-#     ds_key = "monk" + str(i+1)
-#     avg_gain_sub_dict = dict()
-#     for j in range(num_of_attributes):
-#         attribute_key = "A" + str(j+1)
-#         attribute = m.attributes[j]
-#         avg_gain_sub_dict[attribute_key] = averageGain(ds, attribute)
-#     avg_gain_dict[ds_key] = avg_gain_sub_dict
+d1 = get_avg_gain_dict(monk1_A5)
+d2 = get_avg_gain_dict(monk1_A12346)
+print(d1)
+print(d2)
 
 ################################################################################
 
