@@ -1,6 +1,15 @@
 import monkdata as m
 import dtree as d
 from drawtree_qt5 import *
+import random
+
+
+def partition(data, fraction):
+    ldata = list(data)
+    random.shuffle(ldata)
+    breakPoint = int(len(ldata) * fraction)
+    return ldata[:breakPoint], ldata[breakPoint:]
+
 
 
 ################################# Assignment 0 #################################
@@ -11,12 +20,12 @@ from drawtree_qt5 import *
 # I believe MONK-2 to be the most difficult for a decision tree algorithm to
 # learn, since "ai = 1 for exactly two i of {1, 2, ..., 6} is difficult to
 # express concisely with binary questions. Low information gain from each
-# sub question. On the other hand, it has more training data...
+# sub question. On the other hand, it has more training data.
 #
 # MONK-3 has the least amount of training data. Apart from that, it also has
 # random noise added.
 #
-# Then again, MONK-2 has the lowest entropy.
+# MONK-2 has the lowest entropy.
 ################################################################################
 
 
@@ -156,7 +165,7 @@ def get_avg_gain_dict_exclude(dataset, exclude=[]):
 
 
 d.selected_attribute = "A5"
-print("\nAssignment 5.1 a) - Split monk1 into subsets according to d.selected attribute {}\n".format(d.selected_attribute))
+print("\nAssignment 5.1 a) - Split monk1 into subsets according to selected attribute {}\n".format(d.selected_attribute))
 idx = int(d.selected_attribute[-1]) - 1
 subset_A5_true = d.select(m.monk1, m.attributes[idx], True)
 subset_A12346 = [x for x in m.monk1 if x not in subset_A5_true]
@@ -169,37 +178,71 @@ IG_dict_A12346 = sorted(IG_dict_A12346.items(), key=lambda kv: kv[1], reverse=Tr
 print()
 
 d.selected_attribute = "A1"
-print("\nAssignment 5.1 c) - Split into further subsets according to d.selected attribute {}\n".format(d.selected_attribute))
+print("\nAssignment 5.1 c) - Split into further subsets according to selected attribute {}\n".format(d.selected_attribute))
 old_idx = idx
 idx = int(d.selected_attribute[-1]) - 1
 subset_A1_true = d.select(subset_A12346, m.attributes[idx], True)
 subset_A2346 = [x for x in subset_A12346 if x not in subset_A1_true]
 
-print(d.buildTree(m.monk1, m.attributes, 3))
-drawTree(d.buildTree(m.monk1, m.attributes, 10))
+# print(d.buildTree(m.monk1, m.attributes, 3))
+# drawTree(d.buildTree(m.monk1, m.attributes, 10))
 print()
-
 
 # Build the full decision trees for all three Monk datasets using buildTree.
 # Then, use the function check to measure the performance of the decision tree
 # on both the training and test datasets.
-#       For example, to build a tree for monk1 
-
+#       Compute the train and test set errors for the three Monk datasets for
+# the full trees. Were your assumptions about the datasets correct? Explain the
+# results you get for the training and test datasets.
+t1 = d.buildTree(m.monk1, m.attributes)
+t2 = d.buildTree(m.monk2, m.attributes)
+t3 = d.buildTree(m.monk3, m.attributes)
+print("Monk1 training\t", d.check(t1, m.monk1))
+print("Monk2 training\t", d.check(t2, m.monk2))
+print("Monk3 training\t", d.check(t3, m.monk3))
+print("Monk1 test\t", d.check(t1, m.monk1test))
+print("Monk2 test\t", d.check(t2, m.monk2test))
+print("Monk3 test\t", d.check(t3, m.monk3test))
+print()
 ################################################################################
 
 
+################################# Assignment 5 #################################
+print("\nAssignment 6 - Prune the trees")
+monk1train, monk1val = partition(m.monk1, 0.6)
+monk2train, monk2val = partition(m.monk2, 0.6)
+monk3train, monk3val = partition(m.monk3, 0.6)
+tree_1 = d.buildTree(monk1train, m.attributes)
+tree_2 = d.buildTree(monk2train, m.attributes)
+tree_3 = d.buildTree(monk3train, m.attributes)
+trees = [tree_1, tree_2, tree_3]
 
+print("Monk1 test\t", d.check(tree_1, m.monk1test))
+print("Monk2 test\t", d.check(tree_2, m.monk2test))
+print("Monk3 test\t", d.check(tree_3, m.monk3test))
 
+# Recursive function for finding the best pruned tree.
+# Input: the tree we want to prune and a validation dataset (val_ds).
+def prune_tree(tree, val_ds, best_perf=0):
+    perf = d.check(tree, val_ds)
+    if perf > best_perf:
+        best_perf = perf
+    else:
+        return perf, tree
 
+    all_pruned = d.allPruned(tree)
 
+    for t in all_pruned:
+        tmp_perf, tmp_tree = prune_tree(t, val_ds, best_perf)
+        if tmp_perf > best_perf:
+            best_perf = tmp_perf
+            tree = tmp_tree
 
+    return best_perf, tree
 
-
-
-
-
-
-
+best_performance, best_tree = prune_tree(tree_1, monk1val)
+print(best_performance)
+# print(best_performance, "\n\n", best_tree)
 
 
 ################################################################################
