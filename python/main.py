@@ -18,17 +18,21 @@ from dtree import *
 # Then again, MONK-2 has the lowest entropy.
 ################################################################################
 
+
 ################################# Assignment 1 #################################
 # Calculate the entropy of the training datasets.
+
+print("\n\nAssignment 1 - Calculate the entropy of each training dataset")
 
 entropy_monk1 = entropy(m.monk1)    # Yields 1.0 because there's a 50/50 split.
 entropy_monk2 = entropy(m.monk2)    # Yields 0.9571....
 entropy_monk3 = entropy(m.monk3)    # yields 0.9998....
 print()
-print(entropy_monk1)
-print(entropy_monk2)
-print(entropy_monk3)
+print("monk1: ", entropy_monk1)
+print("monk2: ", entropy_monk2)
+print("monk3: ", entropy_monk3)
 ################################################################################
+
 
 ################################# Assignment 2 #################################
 # Explain entropy for a uniform distribution and a non-uniform distribution,
@@ -46,6 +50,7 @@ print(entropy_monk3)
 #   A 0 entropy distribution is one where P for a certain outcome equals 1. In
 # this case, we already know the outcome.
 ################################################################################
+
 
 ################################# Assignment 3 #################################
 # Use the function averageGain (defined in dtree.py) to calculate the expected
@@ -67,9 +72,13 @@ for i, ds in enumerate(datasets_train):
         avg_gain_sub_dict[attribute_key] = averageGain(ds, attribute)
     avg_gain_dict[ds_key] = avg_gain_sub_dict
 
-print()
-[print(x, '\n') for x in avg_gain_dict.values()]
+print("\n\nAssignment 3 - Where do we find the highest average gain?\n")
+
+# [print(max(x.values()), '\n') for x in avg_gain_dict.values()]
 # [print(*x, sep='\n') for x in [list(avg_gain_dict[y].values()) for y in avg_gain_dict.keys()]]
+print(avg_gain_dict)
+[print(name, ": ", max(monk_dict.items(), key=lambda item:item[1])) for name, monk_dict in avg_gain_dict.items()]
+print()
 
 # Answer:   A5 has the highest average gain in the monk1 dataset:
 #           0.28703074971578435
@@ -77,26 +86,46 @@ print()
 #           0.01727717693791797
 #           A2 has the highest average gain in the monk3 dataset (A5 close 2nd).
 #           0.29373617350838865
+
+#                       Information Gain
+#   Dataset     a1      a2      a3      a4      a5      a6
+#   MONK-1    0.0753  0.0058  0.0047 0.0263   0.2870  0.0007
+#   MONK-2
+#   MONK-3
 ################################################################################
 
-################################# Assignment 3 #################################
+
+################################# Assignment 4 #################################
 # For splitting we choose the attribute that maximizes the information gain,
 # Eq.3. Looking at Eq.3 how does the entropy of the subsets, Sk, look like when
 # the information gain is maximized? How can we motivate using the information
 # gain as a heuristic for picking an attribute for splitting? Think about
 # reduction in entropy after the split and what the entropy implies.
 
-# Answer: The information gain is maximized when the entropy of the subsets, Sk,
-#         is minimized.
-#               Motivation: 
+# Answer: Entropy can be defined as uncertainty.
+#
+#         The information gain is maximized when the entropy of the subsets, Sk,
+#         is minimized. After the split, there should be less uncertainty (i.e.
+#         lower entropy).
+#
+#         Motivation:
+#         Information gain can be defined as
+#                   IG = EntropyBeforeSplit - AverageEntropyAfterSplit.
+#
+#         In other words, IG is the reduction in entropy achieved after
+#         splitting the data according to an attribute. The attribute providing
+#         the greatest IG is the attribute causing the greatest reduction in
+#         entropy.
 
 ################################################################################
 
 
+################################# Assignment 4 #################################
+def select(dataset, attribute, value):
+    "Return subset of data samples where the attribute has the given value"
+    return [x for x in dataset if x.attribute[attribute] == value]
 
-
-
-
+################################################################################
 
 
 
