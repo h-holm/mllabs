@@ -1,5 +1,6 @@
 import monkdata as m
 from dtree import *
+from drawtree_qt5 import *
 
 
 ################################# Assignment 0 #################################
@@ -191,11 +192,17 @@ for key, value in d4.items():
     print(key, "   : ", value)
 
 print("\nAssignment 5.2 - Draw the decision tree up to the first two levels\n")
-def mostCommon(dataset):
-    "Majority class of the dataset"
-    pCount = len([x for x in dataset if x.positive])
-    nCount = len([x for x in dataset if not x.positive])
-    return pCount > nCount
+most_common_A5 = mostCommon(monk1_A5)
+most_common_A12346 = mostCommon(monk1_A12346)
+most_common_A1 = mostCommon(monk1_A1)
+most_common_A2346 = mostCommon(monk1_A2346)
+print(most_common_A5)
+print(most_common_A12346)
+print(most_common_A1)
+print(most_common_A2346)
+
+print(buildTree(m.monk1, m.attributes, 3))
+drawTree(buildTree(m.monk1, m.attributes, 1))
 
 ################################################################################
 
