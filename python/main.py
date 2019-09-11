@@ -140,6 +140,20 @@ print()
 # pass a third, optional, parameter to buildTree, you can limit the depth of the
 # generated tree.
 
+
+def get_avg_gain_dict_exclude(dataset, exclude=[]):
+    avg_gain_dict = dict()
+    for i in range(len(m.attributes)):
+        if i not in exclude:
+            attribute_key = "A" + str(i+1)
+            attribute = m.attributes[i]
+            avg_gain = averageGain(dataset, attribute)
+            avg_gain_dict[attribute_key] = avg_gain
+
+    return avg_gain_dict
+
+
+print("\nAssignment 5.1 a) - Split monk1 into subsets according to selected attribute {}\n".format("A5"))
 monk1_A5 = list()
 monk1_A12346 = list()
 for i in range(len(m.attributes)):
@@ -148,14 +162,40 @@ for i in range(len(m.attributes)):
     else:
         monk1_A12346.extend(select(m.monk1, m.attributes[i], True))
 
-print("\nAssignment 5 - Split monk1 into subsets according to selected attribute {}\n".format("A5"))
 # print(len(monk1_A5))
 # print(len(monk1_A12346))
 
-d1 = get_avg_gain_dict(monk1_A5)
-d2 = get_avg_gain_dict(monk1_A12346)
-print(d1)
-print(d2)
+# d1 = get_avg_gain_dict_exclude(monk1_A5)
+d2 = get_avg_gain_dict_exclude(monk1_A12346, exclude=[4])
+print("Subset of monk1 with A5 == True excluded")
+for key, value in d2.items():
+    print(key, "   : ", value)
+
+
+print("\nAssignment 5.1 b) - Split subset of monk1 into subsets according to selected attribute {}\n".format("A1"))
+monk1_A1 = list()
+monk1_A2346 = list()
+for i in range(len(m.attributes)):
+    if i == 0:
+        monk1_A1.extend(select(monk1_A12346, m.attributes[i], True))
+    elif i != 4:
+        monk1_A2346.extend(select(monk1_A12346, m.attributes[i], True))
+
+# print(len(ºmonk1_A1))
+# print(len(monk1_A2346))
+
+# d3 = get_avg_gain_dict_exclude(monk1_A1)
+d4 = get_avg_gain_dict_exclude(monk1_A2346, exclude=[0, 4])
+print("Subset of monk1 with A1 == True excluded")
+for key, value in d4.items():
+    print(key, "   : ", value)
+
+print("\nAssignment 5.2 - Draw the decision tree up to the first two levels\n")
+def mostCommon(dataset):
+    "Majority class of the dataset"
+    pCount = len([x for x in dataset if x.positive])
+    nCount = len([x for x in dataset if not x.positive])
+    return pCount > nCount
 
 ################################################################################
 
