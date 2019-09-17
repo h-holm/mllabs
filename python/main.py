@@ -238,7 +238,7 @@ def find_best_pruned_tree_recursive(tree, val_ds, best_perf=0):
             best_perf = temp_perf
             tree = temp_tree
 
-    return best_perf, tree
+    return tree, best_perf
 
 
 def find_best_pruned_tree(tree, validate):
@@ -257,9 +257,9 @@ def find_best_pruned_tree(tree, validate):
     return best_tree, best_perf
 
 
-best_performance, best_tree = find_best_pruned_tree_recursive(tree_1, monk1val)
-print(best_performance)
 best_tree, best_perf = find_best_pruned_tree(tree_1, monk1val)
+print(best_perf)
+best_tree, best_perf = find_best_pruned_tree_recursive(tree_1, monk1val)
 print(best_perf)
 # print(best_performance, "\n\n", best_tree)
 
