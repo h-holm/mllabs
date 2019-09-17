@@ -1,7 +1,9 @@
 import monkdata as m
 import dtree as d
-from drawtree_qt5 import *
 import random
+import numpy as np
+from drawtree_qt5 import *
+import matplotlib.pyplot as plt
 
 
 def partition(data, fraction):
@@ -9,7 +11,6 @@ def partition(data, fraction):
     random.shuffle(ldata)
     breakPoint = int(len(ldata) * fraction)
     return ldata[:breakPoint], ldata[breakPoint:]
-
 
 
 ################################# Assignment 0 #################################
@@ -228,12 +229,12 @@ def find_best_pruned_tree_recursive(tree, val_ds, best_perf=0):
     if perf > best_perf:
         best_perf = perf
     else:
-        return perf, tree
+        return tree, perf
 
     forest = d.allPruned(tree)
 
     for t in forest:
-        temp_perf, temp_tree = find_best_pruned_tree_recursive(t, val_ds, best_perf)
+        temp_tree, temp_perf = find_best_pruned_tree_recursive(t, val_ds, best_perf)
         if temp_perf > best_perf:
             best_perf = temp_perf
             tree = temp_tree
@@ -263,5 +264,64 @@ best_tree, best_perf = find_best_pruned_tree_recursive(tree_1, monk1val)
 print(best_perf)
 # print(best_performance, "\n\n", best_tree)
 
-
 ################################################################################
+
+def partition(data, fraction):
+    ldata = list(data)
+    random.shuffle(ldata)
+    breakPoint = int(len(ldata) * fraction)
+    return ldata[:breakPoint], ldata[breakPoint:]
+
+##-----------------------------------------------------------------------------
+# Evaluate (ASS. 8)
+##-----------------------------------------------------------------------------
+monks = [m.monk1, m.monk2, m.monk3]
+monks_test = [m.monk1test, m.monk2test, m.monk3test]
+fractions = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+
+monk1_pruned = dict()
+monk3_pruned = dict()
+for i, monk in enumerate(monks):
+    if monk != m.monk2:
+        for f in fractions:
+
+            if monk == m.monk1:
+                monk1_pruned[f] = list()
+            elif monk == m.monk3:
+                monk3_pruned[f] = list()
+
+            for j in range(100):
+                train, validate = partition(monk, f)
+                tree = d.buildTree(train, m.attributes)
+                best_tree, best_perf = find_best_pruned_tree_recursive(tree, validate)
+                test_perf = 1 - d.check(best_tree, monks_test[i])
+                if monk == m.monk1:
+                    monk1_pruned[f].append(test_perf)
+                elif monk == m.monk3:
+                    monk3_pruned[f].append(test_perf)
+
+mean1 = np.mean(list(monk1_pruned.values()), axis=1)
+mean3 = np.mean(list(monk3_pruned.values()), axis=1)
+std1 = np.std(list(monk1_pruned.values()), axis=1)
+std3 = np.std(list(monk3_pruned.values()), axis=1)
+
+plt.plot(fractions, mean1, color='#49abc2', marker='o', label="Means")
+plt.errorbar(x = fractions, y = mean1, yerr = std1)
+plt.title("Mean Error vs Fractions on MONK-1")
+plt.xlabel("Fractions")
+plt.ylabel("Means of Error")
+plt.legend(loc='upper right', frameon=False)
+plt.show()
+
+plt.plot(fractions, mean3, color='#fe5f55', marker='o', label="Means")
+plt.errorbar(x = fractions, y = mean3, yerr = std3)
+plt.title("Mean Error vs Fractions on MONK-3")
+plt.xlabel("Fractions")
+plt.ylabel("Means of Error")
+plt.legend(loc='upper right', frameon=False)
+plt.show()
+
+
+##-----------------------------------------------------------------------------
+# END
+##-----------------------------------------------------------------------------
