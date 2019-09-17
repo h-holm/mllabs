@@ -223,25 +223,44 @@ print("Monk3 test\t", d.check(tree_3, m.monk3test))
 
 # Recursive function for finding the best pruned tree.
 # Input: the tree we want to prune and a validation dataset (val_ds).
-def prune_tree(tree, val_ds, best_perf=0):
+def find_best_pruned_tree_recursive(tree, val_ds, best_perf=0):
     perf = d.check(tree, val_ds)
     if perf > best_perf:
         best_perf = perf
     else:
         return perf, tree
 
-    all_pruned = d.allPruned(tree)
+    forest = d.allPruned(tree)
 
-    for t in all_pruned:
-        tmp_perf, tmp_tree = prune_tree(t, val_ds, best_perf)
-        if tmp_perf > best_perf:
-            best_perf = tmp_perf
-            tree = tmp_tree
+    for t in forest:
+        temp_perf, temp_tree = find_best_pruned_tree_recursive(t, val_ds, best_perf)
+        if temp_perf > best_perf:
+            best_perf = temp_perf
+            tree = temp_tree
 
     return best_perf, tree
 
-best_performance, best_tree = prune_tree(tree_1, monk1val)
+
+def find_best_pruned_tree(tree, validate):
+    best_perf = d.check(tree, validate)
+    forest = d.allPruned(tree)
+
+    temp_tree = None
+    best_tree = tree
+
+    for t in forest:
+        temp_perf = d.check(t, validate)
+        if temp_perf > best_perf:
+            best_perf = temp_perf
+            best_tree = tree
+
+    return best_tree, best_perf
+
+
+best_performance, best_tree = find_best_pruned_tree_recursive(tree_1, monk1val)
 print(best_performance)
+best_tree, best_perf = find_best_pruned_tree(tree_1, monk1val)
+print(best_perf)
 # print(best_performance, "\n\n", best_tree)
 
 
