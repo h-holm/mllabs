@@ -18,12 +18,16 @@ def generate_n_dist_dataset():
 
 
 # ================================================== #
-#               Linear Kernel function
+#                  Kernel functions
 # ================================================== #
 def linear_kernel(x_vector, y_vector):
-    # kappa = np.dot(np.transpose(x_vector), y_vector)
-    kappa = np.dot(x_vector, y_vector) + 1
-    # kappa = np.dot(x_vector, y_vector)
+    kappa = np.dot(np.transpose(x_vector), y_vector)
+    return kappa
+
+
+def polynomial_kernel(x_vector, y_vector, p=2):
+    # kappa = np.power((np.dot(x_vector, y_vector) + 1), p)
+    kappa = np.power((np.dot(np.transpose(x_vector), y_vector) + 1), p)
     return kappa
 
 
@@ -41,11 +45,6 @@ def instantiate_P(inputs, targets, kernel):
             tj = targets[j]
             xj = inputs[j]
             kappa = kernel(xi, xj)
-            # print(xi)
-            # print(xj)
-            # print(ti)
-            # print(tj)
-            # print(kappa)
             P[i][j] = ti*tj*kappa
 
     # print(P)
@@ -82,6 +81,22 @@ def zerofun(alpha):
 
 
 # ================================================== #
+#       Calculate b value using equation (7)
+# ================================================== #
+def calculate_b():
+    b = 0.0
+    for s_v in support_vectors:
+        # if any(([x, y] == [s_v[1], s_v[2]]) for s_v in support_vectors):
+        #     b += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - s_v[3]
+
+        # b += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - s_v[3]
+
+        b += s_v[0] * s_v[3] * kernel([s_v[1], s_v[2]], [s_v[1], s_v[2]]) - s_v[3]
+
+    return b
+
+
+# ================================================== #
 #           Indicator function (equation 6)
 # ================================================== #
 # Implement the indicator function (equation 6) which uses the non-zero αi’s
@@ -91,6 +106,9 @@ def indicator(x, y):
     for s_v in support_vectors:
         # Missing b?
         ind += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]])
+        # ind += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - calculate_b(x, y)
+
+    # ind -= b
 
     return ind
 
@@ -127,8 +145,8 @@ def plot_data_and_dec_boundary(class_A, class_B):
 
 np.random.seed(100)
 
-kernel = linear_kernel
-# kernel = polynomial_kernel
+# kernel = linear_kernel
+kernel = polynomial_kernel
 
 class_A, class_B = generate_n_dist_dataset()
 # class_A, class_B = generate_other_dataset()
@@ -156,11 +174,6 @@ for i in range(N):
         tj = targets[j]
         xj = inputs[j]
         kappa = kernel(xi, xj)
-        # print(xi)
-        # print(xj)
-        # print(ti)
-        # print(tj)
-        # print(kappa)
         P[i][j] = ti*tj*kappa
 
 start = np.zeros(N)
@@ -174,8 +187,13 @@ support_vectors = []
 # Extract only non-zero alpha values.
 for i in range(len(alpha)):
     # Set threshold for filtering out zero-valued alpha values.
-    if alpha[i] > (10**-5):
+    if abs(alpha[i]) > (10**-5):
         support_vectors.append((alpha[i], inputs[i][0], inputs[i][1], targets[i]))
+
+# print(inputs)
+b = calculate_b()
+# 1.2693270111146182
+# print(b)
 
 plot_data_and_dec_boundary(class_A, class_B)
 
