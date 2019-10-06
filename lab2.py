@@ -2,12 +2,15 @@ import random, math
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+import sklearn.datasets as dt
 
 
+np.random.seed(100)
+
 # ================================================== #
-#      Generate Points with Normal Distribution
+#                Generate data sets
 # ================================================== #
-def generate_n_dist_dataset():
+def generate_n_dist_dataset_original():
     class_A = np.concatenate(
                              (np.random.randn(10, 2) * 0.2 + [1.5, 0.5],
                               np.random.randn(10, 2) * 0.2 + [-1.5, 0.5])
@@ -16,6 +19,43 @@ def generate_n_dist_dataset():
 
     return class_A, class_B
 
+
+def generate_n_dist_dataset_one_cluster():
+    class_A = np.concatenate(
+                             (np.random.randn(10, 2) * 0.2 + [1.5, 0.5],
+                              np.random.randn(10, 2) * 0.2 + [1.5, 0.5])
+                            )
+    class_B = np.random.randn(20, 2) * 0.2 + [1.5, 0.5]
+
+    return class_A, class_B
+
+
+def generate_n_dist_dataset_inseparable():
+    class_A = np.concatenate(
+                             (np.random.randn(10, 2) * 0.2 + [1.5, 0.5],
+                              np.random.randn(10, 2) * 0.2 + [-1.5, 0.5])
+                            )
+    class_B = np.random.randn(20, 2) * 0.2 + [0.0, 0.5]
+
+    return class_A, class_B
+
+
+def create_inputs_and_targets_arrays(A_data, B_data):
+    datapoints = np.concatenate((A_data, B_data))
+    target_values = np.concatenate(
+                             (np.ones(A_data.shape[0]),
+                             -np.ones(B_data.shape[0])))
+
+    # Number of rows (samples).
+    N = datapoints.shape[0]
+
+    # Randomly reorder the samples.
+    permute = list(range(N))
+    random.shuffle(permute)
+    datapoints = datapoints[permute, :]
+    target_values = target_values[permute]
+
+    return datapoints, target_values
 
 # ================================================== #
 #                  Kernel functions
@@ -30,15 +70,15 @@ def polynomial_kernel(x_vector, y_vector, p=3):
     return kappa
 
 
-def RBF_kernel(x_vector, y_vector, sigma=5):
-    kappa = math.exp((-(np.linalg.norm(x_vector - y_vector)**2)) / (2 * (sigma**2)))
+def RBF_kernel(x_vector, y_vector, sigma=0.5):
+    diff = np.subtract(x_vector, y_vector)
+    kappa = math.exp((-np.dot(diff, diff)) / (2 * sigma * sigma))
     return kappa
 
 
 # ================================================== #
 #              Instantiate vector Pij
 # ================================================== #
-# TODO: NOT SURE ABOUT THIS.
 def instantiate_P(inputs, targets, kernel):
     N = inputs.shape[0]
     P = np.zeros((N, N))
@@ -51,25 +91,16 @@ def instantiate_P(inputs, targets, kernel):
             kappa = kernel(xi, xj)
             P[i][j] = ti*tj*kappa
 
-    # print(P)
     return P
 
 
 # ================================================== #
 #            Implementation of equation 4
 # ================================================== #
-# Takes vector alpha as argument.
-# Returns a scalar value, effectively implementing equation 4.
 def objective(alpha):
-    # np.dot()
-    scalar = 0
-    for i, alpha_i in enumerate(alpha):
-        P_i = P[i]
-        for j, alpha_j in enumerate(alpha):
-            P_i_j = P_i[j]
-            scalar += alpha_i * alpha_j * P_i_j
-
-    scalar = 0.5 * scalar - np.sum(alpha)
+    tmp_vector = np.dot(alpha, P)
+    tmp_scalar = np.dot(alpha, tmp_vector)
+    scalar = 1/2 * tmp_scalar - np.sum(alpha)
 
     return scalar
 
@@ -78,10 +109,7 @@ def objective(alpha):
 #    Implementation of equality constraint of (10)
 # ================================================== #
 def zerofun(alpha):
-    # if all(elem >= 0 for elem in alpha)
-    scalar = np.dot(alpha, targets)
-
-    return scalar
+    return np.dot(alpha, targets)
 
 
 # ================================================== #
@@ -104,8 +132,6 @@ def calculate_b():
 # ================================================== #
 #           Indicator function (equation 6)
 # ================================================== #
-# Implement the indicator function (equation 6) which uses the non-zero αi’s
-# together with their xi’s and ti’s to classify new points.
 def indicator(x, y):
     ind = 0.0
     for sv in support_vectors:
@@ -128,7 +154,9 @@ def plot_data_and_dec_boundary(class_A, class_B):
              'r.')
 
     xgrid = np.linspace(-5, 5)
-    ygrid = np.linspace(-4, 4)
+    ygrid = np.linspace(-5, 5)
+    # xgrid = np.linspace(-5, 5)
+    # ygrid = np.linspace(-4, 4)
 
     grid = np.array([[indicator(x, y)
                       for x in xgrid]
@@ -146,49 +174,69 @@ def plot_data_and_dec_boundary(class_A, class_B):
     return
 
 
-np.random.seed(100)
+# ================================================== #
+#      Extract support vectors using threshold
+# ================================================== #
+def extract_support_vectors(alpha, threshold=10**-5):
+    support_vectors = []
+    for i in range(len(alpha)):
+        # Set threshold for filtering out zero-valued alpha values.
+        if abs(alpha[i]) > (10**-5):
+        # if abs(alpha[i]) > (10**-5) and abs(alpha[i]) <= C:
+            support_vectors.append((alpha[i], inputs[i][0], inputs[i][1], targets[i]))
 
-# kernel = linear_kernel
-# kernel = polynomial_kernel
-kernel = RBF_kernel
-
-class_A, class_B = generate_n_dist_dataset()
-# class_A, class_B = generate_other_dataset()
-
-inputs = np.concatenate((class_A, class_B))
-targets = np.concatenate(
-                         (np.ones(class_A.shape[0]),
-                         -np.ones(class_B.shape[0])))
-
-# Number of rows (samples).
-N = inputs.shape[0]
-
-# Randomly reorder the samples.
-permute = list(range(N))
-random.shuffle(permute)
-inputs = inputs[permute, :]
-targets = targets[permute]
-
-P = instantiate_P(inputs, targets, kernel)
-
-start = np.zeros(N)
-B = [(0, None) for b in range(N)]
-XC = {'type': 'eq', 'fun': zerofun}
-
-ret = minimize(objective, start, bounds=B, constraints=XC)
-alpha = ret['x']
-
-support_vectors = []
-# Extract only non-zero alpha values.
-for i in range(len(alpha)):
-    # Set threshold for filtering out zero-valued alpha values.
-    if abs(alpha[i]) > (10**-5):
-        support_vectors.append((alpha[i], inputs[i][0], inputs[i][1], targets[i]))
-
-b = calculate_b()
-
-plot_data_and_dec_boundary(class_A, class_B)
+    return support_vectors
 
 
-# if __name__ == '__main__':
-#     main()
+def main():
+    global kernel
+    # kernel = linear_kernel
+    # kernel = polynomial_kernel
+    kernel = RBF_kernel
+
+    # Higher C-value equals lower slack.
+    C = 100
+
+    # Our "in-house" created dataset.
+    # class_A, class_B = generate_n_dist_dataset_original()
+    class_A, class_B = generate_n_dist_dataset_inseparable()
+    # class_A, class_B = generate_n_dist_dataset_one_cluster()
+
+    # Create data structures for the input datasets and their corresponding
+    # target values (ti E {-1, 2}). Both are np.arrays.
+    global inputs
+    global targets
+    inputs, targets = create_inputs_and_targets_arrays(class_A, class_B)
+
+    # Instantiate P to save computational power and set it to being global.
+    global P
+    P = instantiate_P(inputs, targets, kernel)
+
+    N = inputs.shape[0]
+
+    # Set a zeroed vector as our initial guesses.
+    start = np.zeros(N)
+    # Bounds.
+    B = [(0, C) for b in range(N)]
+    # Extra constraints. In this case, of type "equality" using our zerofun().
+    XC = {'type': 'eq', 'fun': zerofun}
+
+    ret = minimize(objective, start, bounds=B, constraints=XC)
+    print('Success: ', ret['success'])
+    print('Message: ', ret['message'])
+    alpha = ret['x']
+
+    print(alpha.astype(int))
+
+    # Extract only non-zero alpha values.
+    global support_vectors
+    support_vectors = extract_support_vectors(alpha)
+
+    global b
+    b = calculate_b()
+
+    plot_data_and_dec_boundary(class_A, class_B)
+
+
+if __name__ == '__main__':
+    main()
