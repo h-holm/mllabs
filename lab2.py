@@ -2,7 +2,6 @@ import random, math
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-import sklearn.datasets as dt
 
 
 np.random.seed(100)
@@ -30,7 +29,7 @@ def generate_n_dist_dataset_one_cluster():
     return class_A, class_B
 
 
-def generate_n_dist_dataset_inseparable():
+def generate_n_dist_dataset_linearly_inseparable():
     class_A = np.concatenate(
                              (np.random.randn(10, 2) * 0.2 + [1.5, 0.5],
                               np.random.randn(10, 2) * 0.2 + [-1.5, 0.5])
@@ -38,6 +37,22 @@ def generate_n_dist_dataset_inseparable():
     class_B = np.random.randn(20, 2) * 0.2 + [0.0, 0.5]
 
     return class_A, class_B
+
+
+def generate_linearly_separable_dataset():
+    # Linearly separable points
+    classA = [(random.normalvariate(-1.5, 1), random.normalvariate(1.5, 1), 1.0) for i in range(10)] +\
+             [(random.normalvariate(1.5, 1), random.normalvariate(0.5, 1), 1.0) for i in range(10)]
+
+    classB = [(random.normalvariate(0.0, 0.5), random.normalvariate(-0.5, 0.5), -1.0) for i in range(10)]
+
+    classA = np.asarray(classA)
+    classB = np.asarray(classB)
+
+    classA = classA[:, [1,2]]
+    classB = classB[:, [1,2]]
+
+    return classA, classB
 
 
 def create_inputs_and_targets_arrays(A_data, B_data):
@@ -57,6 +72,7 @@ def create_inputs_and_targets_arrays(A_data, B_data):
 
     return datapoints, target_values
 
+
 # ================================================== #
 #                  Kernel functions
 # ================================================== #
@@ -65,7 +81,7 @@ def linear_kernel(x_vector, y_vector):
     return kappa
 
 
-def polynomial_kernel(x_vector, y_vector, p=3):
+def polynomial_kernel(x_vector, y_vector, p=2):
     kappa = np.power((np.dot(np.transpose(x_vector), y_vector) + 1), p)
     return kappa
 
@@ -190,20 +206,20 @@ def extract_support_vectors(alpha, threshold=10**-5):
 
 def main():
     global kernel
-    # kernel = linear_kernel
+    kernel = linear_kernel
     # kernel = polynomial_kernel
-    kernel = RBF_kernel
+    # kernel = RBF_kernel
 
     # Higher C-value equals lower slack.
-    C = 100
+    C = 5
 
-    # Our "in-house" created dataset.
-    # class_A, class_B = generate_n_dist_dataset_original()
-    class_A, class_B = generate_n_dist_dataset_inseparable()
+    class_A, class_B = generate_n_dist_dataset_original()
+    # class_A, class_B = generate_n_dist_dataset_linearly_inseparable()
     # class_A, class_B = generate_n_dist_dataset_one_cluster()
+    # class_A, class_B = generate_linearly_separable_dataset()
 
     # Create data structures for the input datasets and their corresponding
-    # target values (ti E {-1, 2}). Both are np.arrays.
+    # target values (ti E {-1, 1}). Both are np.arrays.
     global inputs
     global targets
     inputs, targets = create_inputs_and_targets_arrays(class_A, class_B)
@@ -222,11 +238,12 @@ def main():
     XC = {'type': 'eq', 'fun': zerofun}
 
     ret = minimize(objective, start, bounds=B, constraints=XC)
-    print('Success: ', ret['success'])
+    success = ret['success']
+    print('Success: ', success)
     print('Message: ', ret['message'])
     alpha = ret['x']
 
-    print(alpha.astype(int))
+    # print(alpha.astype(int))
 
     # Extract only non-zero alpha values.
     global support_vectors
@@ -236,7 +253,49 @@ def main():
     b = calculate_b()
 
     plot_data_and_dec_boundary(class_A, class_B)
+    # plot_data_and_dec_boundary(class_A, class_B, C, success)
 
 
 if __name__ == '__main__':
     main()
+
+
+# 1. The optimizer cannot find a solution if no separator can be found which
+#    separates the data points without misclassifying data points as per the
+#    allowed slack. The separating hyperplane (or line/curve in this case) in
+#    turn depends on the kernel.
+
+# 3. Sigma:
+#    With a small sigma, the boundary and margins are well-fitted to the data.
+#    This risks overfitting.
+#    With a large sigma, the boundary and margins are less well-fitted to the
+#    data.
+#    In terms of the bias-variance trado-off, a smaller sigma results in higher
+#    variance (and therefore a higher risk of overfitting to the specific
+#    training samples) and lower bias, while a lower sigma results in lower
+#    variance and higher bias.
+# 3. Polynomial degree:
+#    A higher degree allows for more complex shapes. Higher degree: less
+#    generalizable, and therefore higher variance. This in turn equals a lower
+#    bias and a higher risk of overfitting.
+
+# 4. The slack parameter C sets the relative importance of avoiding slack versus
+#    getting a wider margin. Noisy data typically deserve a low C value,
+#    allowing for more slack, since individual datapoints in strange locations
+#    should not be taking too seriously. Slack means allowing some degree of
+#    misclassification to occur.
+#    The C value defines the upper bound of how strict we are. A lower C value
+#    therefore means that we are stricter. Very large values can be said to
+#    equal no upper bound, thereby allowing no misclassifications. A small C
+#    value on the other hand, allows misclassification and results in a wider
+#    margin.
+#    Large C-value = little slack. Small C-value = larger slack.
+
+# 5. We want to find a model (function f^) which as well as possible replicates
+#    the behaviour of our data / estimates the underlying function f of our data.
+#    If we suspect that the underlying function is linear in nature / that our
+#    data reasonably can be separated linearly, then we should opt for a less
+#    complex model with little slack. If we however believe our data to be noisy
+#    and more complex in nature, we opt for a polynomial or RBF solution with
+#    higher complexity. This of course risks overfitting and less
+#    generalizability.
