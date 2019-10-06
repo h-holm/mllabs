@@ -25,9 +25,13 @@ def linear_kernel(x_vector, y_vector):
     return kappa
 
 
-def polynomial_kernel(x_vector, y_vector, p=2):
-    # kappa = np.power((np.dot(x_vector, y_vector) + 1), p)
+def polynomial_kernel(x_vector, y_vector, p=3):
     kappa = np.power((np.dot(np.transpose(x_vector), y_vector) + 1), p)
+    return kappa
+
+
+def RBF_kernel(x_vector, y_vector, sigma=5):
+    kappa = math.exp((-(np.linalg.norm(x_vector - y_vector)**2)) / (2 * (sigma**2)))
     return kappa
 
 
@@ -85,13 +89,14 @@ def zerofun(alpha):
 # ================================================== #
 def calculate_b():
     b = 0.0
-    for s_v in support_vectors:
-        # if any(([x, y] == [s_v[1], s_v[2]]) for s_v in support_vectors):
-        #     b += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - s_v[3]
 
-        # b += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - s_v[3]
+    first_sv = support_vectors[0]
+    first_sv_t = first_sv[3]
 
-        b += s_v[0] * s_v[3] * kernel([s_v[1], s_v[2]], [s_v[1], s_v[2]]) - s_v[3]
+    for sv in support_vectors:
+        b += sv[0] * sv[3] * kernel(np.asarray([first_sv[1], first_sv[2]]), np.asarray([sv[1], sv[2]]))
+
+    b -= first_sv[3]
 
     return b
 
@@ -103,12 +108,10 @@ def calculate_b():
 # together with their xi’s and ti’s to classify new points.
 def indicator(x, y):
     ind = 0.0
-    for s_v in support_vectors:
-        # Missing b?
-        ind += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]])
-        # ind += s_v[0] * s_v[3] * kernel([x, y], [s_v[1], s_v[2]]) - calculate_b(x, y)
+    for sv in support_vectors:
+        ind += sv[0] * sv[3] * kernel(np.asarray([x, y]), np.asarray([sv[1], sv[2]]))
 
-    # ind -= b
+    ind -= b
 
     return ind
 
@@ -146,7 +149,8 @@ def plot_data_and_dec_boundary(class_A, class_B):
 np.random.seed(100)
 
 # kernel = linear_kernel
-kernel = polynomial_kernel
+# kernel = polynomial_kernel
+kernel = RBF_kernel
 
 class_A, class_B = generate_n_dist_dataset()
 # class_A, class_B = generate_other_dataset()
@@ -165,16 +169,7 @@ random.shuffle(permute)
 inputs = inputs[permute, :]
 targets = targets[permute]
 
-N = inputs.shape[0]
-P = np.zeros((N, N))
-for i in range(N):
-    ti = targets[i]
-    xi = inputs[i]
-    for j in range(N):
-        tj = targets[j]
-        xj = inputs[j]
-        kappa = kernel(xi, xj)
-        P[i][j] = ti*tj*kappa
+P = instantiate_P(inputs, targets, kernel)
 
 start = np.zeros(N)
 B = [(0, None) for b in range(N)]
@@ -190,10 +185,7 @@ for i in range(len(alpha)):
     if abs(alpha[i]) > (10**-5):
         support_vectors.append((alpha[i], inputs[i][0], inputs[i][1], targets[i]))
 
-# print(inputs)
 b = calculate_b()
-# 1.2693270111146182
-# print(b)
 
 plot_data_and_dec_boundary(class_A, class_B)
 
