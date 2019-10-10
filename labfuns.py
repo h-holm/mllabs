@@ -60,7 +60,7 @@ def trteSplit(X,y,pcSplit,seed=None):
     Ndata = X.shape[0]
     Ntr = int(np.rint(Ndata*pcSplit))
     Nte = Ndata-Ntr
-    np.random.seed(seed)    
+    np.random.seed(seed)
     idx = np.random.permutation(Ndata)
     trIdx = idx[:Ntr]
     teIdx = idx[Ntr:]
@@ -239,7 +239,7 @@ def plotBoundary(classifier, dataset='iris', split=0.7):
             # Predict
             grid[yi,xi] = trained_classifier.classify(np.array([[xx, yy]]))
 
-    
+
     ys = [i+xx+(i*xx)**2 for i in range(len(classes))]
     colormap = cm.rainbow(np.linspace(0, 1, len(ys)))
 
@@ -253,8 +253,8 @@ def plotBoundary(classifier, dataset='iris', split=0.7):
             pass
         trClIdx = np.where(y[trIdx] == c)[0]
         teClIdx = np.where(y[teIdx] == c)[0]
-        plt.scatter(xTr[trClIdx,0],xTr[trClIdx,1],marker='o',c=color,s=40,alpha=0.5, label="Class "+str(c)+" Train")
-        plt.scatter(xTe[teClIdx,0],xTe[teClIdx,1],marker='*',c=color,s=50,alpha=0.8, label="Class "+str(c)+" Test")
+        plt.scatter(xTr[trClIdx,0],xTr[trClIdx,1],marker='o',c=[color],s=40,alpha=0.5, label="Class "+str(c)+" Train")
+        plt.scatter(xTe[teClIdx,0],xTe[teClIdx,1],marker='*',c=[color],s=50,alpha=0.8, label="Class "+str(c)+" Test")
     plt.legend(bbox_to_anchor=(1., 1), loc=2, borderaxespad=0.)
     fig.subplots_adjust(right=0.7)
     plt.show()
