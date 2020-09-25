@@ -4,6 +4,7 @@
 /bos
 /.ipynb_checkpoints
 /ipynb_checkpoints
+/sup
 
 # Don't track these compiled sources.
 *.com
@@ -26,3 +27,4 @@
 *.rar
 *.tar
 *.zip
+*.pdf
