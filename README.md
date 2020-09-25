@@ -1,7 +1,4 @@
-# dectrees
-
 HOW TO RUN
-==========
 
 requirements:
     - python3 (I used 3.7.4)
@@ -22,3 +19,4 @@ Step 3: Run
 Step 4: Deactivate virtual environement
 
     deactivate
+=======

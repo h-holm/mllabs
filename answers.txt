@@ -48,3 +48,166 @@ Background
    random noise added.
 
 ################################################################################
+
+--------------------------------------------------------------------------------
+
+                                3. Naïve Bayes
+
+(1) When can a feature independence assumption be reasonable and when not?
+
+Bayes classifiers assume that the value of a particular feature is independent
+of the value of any other feature, given the class. In reality, this is (most
+often) not the case, as features tend to be mutually dependent.
+
+- The assumption can be reasonable when we need a simple, fast and
+easy-to-implement model.
+- It needs little training data.
+- Even if the assumption does not hold, NB generally performs well in practice.
+- Can be used for both binary and multi-class classification problems.
+- Is able to make probabilistic predictions.
+- Can handle both discrete and continuous data.
+- Not sensitive to irrelevant features.
+- If data changes frequently, NB can adopt changes quickly as it takes less time
+to train.
+- NB has no overfitting issues.
+
+- If the assumption holds (which is however rarely the
+case), we will achieve convergence quicker than when using discriminative
+models like logistic regression.
+- A Naïve Bayes classifier will make the correct MAP (maximum a posteriori)
+decision rule classification so long as the correct class is more probable than
+any other class, even if the probability estimate is grossly inaccurate.
+- Free from the curse of dimensionality. The CoD refers to the phenomena arising
+from when data is analysed and organised in high-dimensional spaces and
+therefore becomes sparse; as the dimensionality increases, the available data
+becomes more sparse. Because of this, more data is needed in order to achieve
+statistical significance. The decoupling of the class conditional feature
+distributions of Naïve Bayes means that each distribution can be independently
+estimated as a one-dimensional distribution.
+
+NOT:
+- Generally not ideal for
+- Not reliable for datasets with complex features.
+- The problem is in the probability estimate, which is going to be wildly and
+unpredictably inaccurate; not in the classification.
+
+Naïve Bayes generally performs well as a binary classifier, even if the
+independence assumption is violated.
+
+(2) How does the decision boundary look for the Iris dataset? How could one
+    improve the classification results for this scenario by changing classifier
+    or, alternatively, manipulating the data?
+
+The decision boundary separating class 0 and from the other two classes is well-
+defined and clear-cut. This is not the case for the decision boundary between
+classes 1 and 2, where we see significant overlap.
+
+Manipulating the data:
+- By moving class 2 (red) away from class 1 (green), the two can be separated
+linearly. As of now, they are partly overlapping. This issue could also be
+solved by moving to a higher-dimensional space.
+
+Changing classifier:
+- A more powerful, more complex classifier such as a support vector machine
+utilizing an RBF kernel would most probably yield a better decision boundary
+between classes 1 and 2. HOWEVER, an SVM is only capable of binary
+classification. Thus, we would need to use at least two (preferrably three)
+SVM:s in order to perform the 3-class classification needed in our case. Slack
+variables would allow for suitable adjustment of the decision boundary.
+- Other possible solutions are decision trees or random forests.
+
+
+
+--------------------------------------------------------------------------------
+
+                            5. Boosted Naïve Bayes
+
+(1) Is there any improvement in classification accuracy? Why/why not?
+
+Yes. By boosting a Naïve Bayes classifier, we focus on improving classification
+where a single iteration would otherwise go wrong. This makes it possible to
+build a more accurate model capable of more complex decision boundaries. We
+lower the bias (which is high for the Naïve Bayes approach) and thereby increase
+the variance.
+
+(2) Plot the decision boundary of the boosted classifier on iris and compare it
+with that of the basic. What differences do you notice? Is the boundary of the
+boosted version more complex?
+
+As stated in the previous paragraph, boosting allows for more complex decision
+boundaries resulting in better fits. In the vowel dataset plot however, we
+notice how certain decision boundaries have converged, for example the blue and
+the purple ones.
+
+(3) Can we make up for not using a more advanced model in the basic classifier
+(e.g. independent features) by using boosting?
+
+Yes, but as with everything else it depends on the situation. In the case of the
+vowel dataset and its overlapping datapoints, it is highly possible that a more
+complex model capable of taking into account interdependencies would do better
+than the boosted Naïve Bayes model.
+
+
+--------------------------------------------------------------------------------
+
+                                6. Decision Trees
+
+
+(1) Is there any improvement in classification accuracy? Why/why not?
+
+Yes. Decision trees are weak classifiers, meaning that they can be improved by
+boosting. In the vowels dataset especially, where data displays overlap and is
+not easily separated, we see a major increase in accuracy from boosting. DT:s
+generally have low bias and high variance. By running several different
+iterations where we focus on improving misclassifications / keep only the pros
+of each created model, we are able to lower the variance and achieve a more
+stable final model.
+
+(2) Plot the decision boundary of the boosted classifier on iris and compare it
+with that of the basic. What differences do you notice? Is the boundary of the
+boosted version more complex?
+
+The basic decision tree results in linear decision boundaries. Through the
+Adaboost algorithm and boosting, we manage to give the decision boundaries
+a non-linear shape.
+
+(3) Can we make up for not using a more advanced model in the basic classifier
+(e.g. independent features) by using boosting?
+
+Definitely.
+
+
+--------------------------------------------------------------------------------
+
+                                7. Conclusions
+
+If you had to pick a classifier, Naïve Bayes or a decision tree or the boosted
+versions of these, which one would you pick? Motivate from the following criteria:
+
+• Outliers
+• Irrelevant inputs: part of the feature space is irrelevant
+• Predictive power
+• Mixed types of data: binary, categorical or continuous features, etc.
+• Scalability: the dimension of the data, D, is large or the number of instances,
+N, is large, or both.
+
+Outliers: Naïve Bayes, as NB has comparatively low variance (compared to DT:s).
+NOT boosted if we know that our data contains MANY outliers. This way,
+we won't overfit on the outliers.
+
+Irrelevant inputs: Decision Trees, since they split on information gain. Because
+of this, they would ignore irrelevant parts of the feature space (since the IG
+from splitting on irrelevant features is low).
+
+Predictive power: Boosted Naïve Bayes. Better choice for prediction.
+
+Mixed types of data: binary, categorical or continuous features, etc.:
+Boosted Decision Trees, provided our data is not too noisy / contains too many
+outliers. DT:s are flexible and work well both with quantitative and qualitative
+data. NB on the other hand works better with continuous data.
+
+Scalability: the dimension of the data, D, is large or the number of instances,
+N, is large, or both:
+NB works well already with small datasets. It gains little from increased
+amounts of data. DT:s on the other hand grow more accurate with more data. We
+just need to avoid "tall trees" and remember to prune.

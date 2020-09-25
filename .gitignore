@@ -1,6 +1,9 @@
 # Don't track content of these folders.
-venv/
-lib/
+/venv
+/lib
+/bos
+/.ipynb_checkpoints
+/ipynb_checkpoints
 
 # Don't track these compiled sources.
 *.com
